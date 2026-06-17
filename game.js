@@ -291,8 +291,8 @@ function drawUI() {
     ctx.fillStyle = '#FFF';
     ctx.font = '8px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('CAR WINDOW', W / 2, 22);
-    ctx.fillText('RUNNER', W / 2, 32);
+    ctx.fillText('FINGER', W / 2, 22);
+    ctx.fillText('SURFING', W / 2, 32);
 
     ctx.font = '5px monospace';
     const items = ['PLAY', 'SETTINGS'];
