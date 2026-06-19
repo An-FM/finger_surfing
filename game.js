@@ -126,30 +126,60 @@ function draw() {
 function drawBackground() {
   if (HAS_SPRITESHEET && BG_SPRITES.sky && spritesheetImage) {
     ctx.drawImage(BG_SPRITES.sky, 0, 0, W, SILL_Y);
-  } else {
-    // Sky
-    ctx.fillStyle = '#87CEEB';
-    ctx.fillRect(0, 0, W, SILL_Y);
-    // Road
-    ctx.fillStyle = '#888';
-    ctx.fillRect(0, SILL_Y - 60, W, 60);
-    // Road dashes
-    ctx.fillStyle = '#CCC';
-    for (let x = 0; x < W; x += 120) {
-      ctx.fillRect(x, SILL_Y - 35, 60, 8);
-    }
+    return;
   }
 
+  // Sky gradient
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, SILL_Y - 60);
+  skyGrad.addColorStop(0, '#4A90D9');
+  skyGrad.addColorStop(0.6, '#87CEEB');
+  skyGrad.addColorStop(1, '#B8E4F0');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, SILL_Y - 60);
+
+  // Clouds
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  drawCloud(150, 80, 60);
+  drawCloud(500, 120, 45);
+  drawCloud(900, 60, 55);
+  drawCloud(1150, 140, 40);
+
+  // Road
+  ctx.fillStyle = '#555';
+  ctx.fillRect(0, SILL_Y - 60, W, 60);
+  // Road edge lines
+  ctx.fillStyle = '#FFD700';
+  ctx.fillRect(0, SILL_Y - 58, W, 4);
+  ctx.fillRect(0, SILL_Y - 6, W, 4);
+  // Road center dashes
+  ctx.fillStyle = '#FFF';
+  for (let x = 0; x < W; x += 120) {
+    ctx.fillRect(x, SILL_Y - 32, 60, 6);
+  }
+
+  // Window sill
   if (HAS_SPRITESHEET && BG_SPRITES.sill && spritesheetImage) {
     ctx.drawImage(BG_SPRITES.sill, 0, SILL_Y, W, SILL_H);
-  } else {
-    // Window sill
-    ctx.fillStyle = '#5C4033';
-    ctx.fillRect(0, SILL_Y, W, SILL_H);
-    ctx.fillStyle = '#7A5A4A';
-    ctx.fillRect(0, SILL_Y + 16, W, 8);
-    ctx.fillRect(0, SILL_Y + 64, W, 8);
+    return;
   }
+  const sillGrad = ctx.createLinearGradient(0, SILL_Y, 0, SILL_Y + SILL_H);
+  sillGrad.addColorStop(0, '#8B6F47');
+  sillGrad.addColorStop(0.3, '#6B4F2F');
+  sillGrad.addColorStop(1, '#4A3520');
+  ctx.fillStyle = sillGrad;
+  ctx.fillRect(0, SILL_Y, W, SILL_H);
+  // Sill top edge
+  ctx.fillStyle = '#A8885E';
+  ctx.fillRect(0, SILL_Y, W, 4);
+}
+
+function drawCloud(x, y, size) {
+  ctx.beginPath();
+  ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+  ctx.arc(x + size * 0.4, y - size * 0.2, size * 0.4, 0, Math.PI * 2);
+  ctx.arc(x + size * 0.8, y, size * 0.45, 0, Math.PI * 2);
+  ctx.arc(x + size * 0.35, y + size * 0.15, size * 0.35, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function drawWindowFrame() {
@@ -158,19 +188,36 @@ function drawWindowFrame() {
     return;
   }
 
-  // Top bar
-  ctx.fillStyle = '#333';
+  // Car interior frame - dark with gradient
+  const frameGrad = ctx.createLinearGradient(0, 0, 0, 32);
+  frameGrad.addColorStop(0, '#1A1A1A');
+  frameGrad.addColorStop(1, '#333');
+  ctx.fillStyle = frameGrad;
   ctx.fillRect(0, 0, W, 32);
-  // Left pillar
+
+  // Left pillar with gradient
+  const pillarGrad = ctx.createLinearGradient(0, 0, 32, 0);
+  pillarGrad.addColorStop(0, '#1A1A1A');
+  pillarGrad.addColorStop(1, '#333');
+  ctx.fillStyle = pillarGrad;
   ctx.fillRect(0, 0, 32, H);
+
   // Right pillar
+  ctx.fillStyle = '#1A1A1A';
   ctx.fillRect(W - 32, 0, 32, H);
-  // Sill top edge highlight
-  ctx.fillStyle = '#666';
-  ctx.fillRect(0, SILL_Y - 16, W, 16);
-  // Interior shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.fillRect(32, 32, W - 64, 32);
+
+  // Sill top edge (the window frame bottom)
+  ctx.fillStyle = '#444';
+  ctx.fillRect(32, SILL_Y - 16, W - 64, 16);
+  ctx.fillStyle = '#555';
+  ctx.fillRect(32, SILL_Y - 16, W - 64, 2);
+
+  // Interior shadow gradient on the wall
+  const shadowGrad = ctx.createLinearGradient(32, 32, 32, 80);
+  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.4)');
+  shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = shadowGrad;
+  ctx.fillRect(32, 32, W - 64, 48);
 }
 
 function drawPlayer() {
@@ -190,34 +237,72 @@ function drawPlayer() {
     return;
   }
 
-  // Fallback: colored shapes (all values ×8 from original)
-  ctx.fillStyle = '#FFB6C1';
+  const x = player.x;
+  const y = player.y;
+  const w = player.w;
+  const h = player.h;
+
+  // Skin tone gradient
+  const skinGrad = ctx.createLinearGradient(x, y, x, y + h);
+  skinGrad.addColorStop(0, '#FFD5C2');
+  skinGrad.addColorStop(0.5, '#FFB6A0');
+  skinGrad.addColorStop(1, '#E8927A');
+
+  ctx.fillStyle = skinGrad;
 
   if (state === 'idle') {
-    ctx.fillRect(player.x, player.y, player.w, 56);
-    const sway = frame === 0 ? 0 : 8;
-    ctx.fillRect(player.x + sway, player.y + 56, 16, 40);
-    ctx.fillRect(player.x + 48 - sway, player.y + 56, 16, 40);
+    // Palm
+    roundRect(x, y, w, 56, 8);
+    const sway = frame === 0 ? 0 : 6;
+    roundRect(x + 6 + sway, y + 48, 20, 44, 6);
+    roundRect(x + 38 - sway, y + 48, 20, 44, 6);
+    // Fingernails
+    ctx.fillStyle = '#FFEDE0';
+    roundRect(x + 9 + sway, y + 82, 14, 6, 3);
+    roundRect(x + 41 - sway, y + 82, 14, 6, 3);
   } else if (state === 'running') {
-    ctx.fillRect(player.x, player.y, player.w, 48);
+    // Palm
+    roundRect(x, y, w, 48, 8);
     if (frame === 0) {
-      ctx.fillRect(player.x + 0, player.y + 48, 24, 48);
-      ctx.fillRect(player.x + 40, player.y + 48, 24, 40);
+      roundRect(x + 6, y + 40, 22, 56, 6);
+      roundRect(x + 36, y + 44, 22, 48, 6);
     } else if (frame === 1) {
-      ctx.fillRect(player.x + 0, player.y + 48, 24, 40);
-      ctx.fillRect(player.x + 40, player.y + 56, 24, 32);
+      roundRect(x + 6, y + 44, 22, 44, 6);
+      roundRect(x + 36, y + 40, 22, 40, 6);
     } else {
-      ctx.fillRect(player.x + 0, player.y + 56, 24, 32);
-      ctx.fillRect(player.x + 40, player.y + 48, 24, 40);
+      roundRect(x + 6, y + 40, 22, 40, 6);
+      roundRect(x + 36, y + 44, 22, 44, 6);
+    }
+    // Fingernails
+    ctx.fillStyle = '#FFEDE0';
+    if (frame === 0) {
+      roundRect(x + 11, y + 88, 14, 6, 3);
+      roundRect(x + 41, y + 84, 14, 6, 3);
+    } else if (frame === 1) {
+      roundRect(x + 11, y + 80, 14, 6, 3);
+      roundRect(x + 41, y + 72, 14, 6, 3);
+    } else {
+      roundRect(x + 11, y + 72, 14, 6, 3);
+      roundRect(x + 41, y + 80, 14, 6, 3);
     }
   } else if (state === 'jumping') {
-    ctx.fillRect(player.x, player.y, player.w, 48);
+    // Palm
+    roundRect(x, y, w, 48, 8);
     if (frame === 0) {
-      ctx.fillRect(player.x + 0, player.y + 40, 24, 32);
-      ctx.fillRect(player.x + 40, player.y + 40, 24, 32);
+      roundRect(x + 6, y + 32, 22, 36, 6);
+      roundRect(x + 36, y + 32, 22, 36, 6);
     } else {
-      ctx.fillRect(player.x - 8, player.y + 40, 24, 32);
-      ctx.fillRect(player.x + 48, player.y + 40, 24, 32);
+      roundRect(x + 2, y + 32, 22, 36, 6);
+      roundRect(x + 40, y + 32, 22, 36, 6);
+    }
+    // Fingernails
+    ctx.fillStyle = '#FFEDE0';
+    if (frame === 0) {
+      roundRect(x + 11, y + 60, 14, 6, 3);
+      roundRect(x + 41, y + 60, 14, 6, 3);
+    } else {
+      roundRect(x + 7, y + 60, 14, 6, 3);
+      roundRect(x + 45, y + 60, 14, 6, 3);
     }
   }
 }
@@ -228,15 +313,69 @@ function drawCar(c) {
     return;
   }
 
-  // Fallback: colored car (all values ×8)
+  const x = c.x;
+  const y = c.y;
+  const w = c.w;
+  const h = c.h;
+
+  // Car body with gradient
+  const bodyGrad = ctx.createLinearGradient(x, y, x, y + h);
+  bodyGrad.addColorStop(0, lightenColor(c.color, 30));
+  bodyGrad.addColorStop(1, c.color);
+  ctx.fillStyle = bodyGrad;
+
+  // Main body (rounded)
+  roundRect(x, y, w, h, 12);
+
+  // Roof (smaller, on top)
   ctx.fillStyle = c.color;
-  ctx.fillRect(c.x, c.y, c.w, c.h);
-  ctx.fillRect(c.x + 16, c.y - 24, c.w - 32, 24);
-  ctx.fillStyle = '#AFEEEE';
-  ctx.fillRect(c.x + 24, c.y - 16, c.w - 48, 16);
+  roundRect(x + 16, y - 20, w - 32, 24, 8);
+
+  // Windows
+  ctx.fillStyle = '#8EC8E8';
+  roundRect(x + 22, y - 16, w - 44, 16, 4);
+
+  // Window shine
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  roundRect(x + 26, y - 14, (w - 44) * 0.4, 10, 2);
+
+  // Wheels
   ctx.fillStyle = '#222';
-  ctx.fillRect(c.x + 16, c.y + c.h - 16, 24, 16);
-  ctx.fillRect(c.x + c.w - 40, c.y + c.h - 16, 24, 16);
+  roundRect(x + 12, y + h - 12, 22, 12, 4);
+  roundRect(x + w - 34, y + h - 12, 22, 12, 4);
+  // Wheel hub
+  ctx.fillStyle = '#555';
+  roundRect(x + 16, y + h - 10, 14, 8, 3);
+  roundRect(x + w - 30, y + h - 10, 14, 8, 3);
+
+  // Headlight / taillight
+  ctx.fillStyle = '#FFFFAA';
+  roundRect(x + 3, y + 8, 6, 8, 2);
+  ctx.fillStyle = '#FF4444';
+  roundRect(x + w - 9, y + 8, 6, 8, 2);
+}
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function lightenColor(hex, percent) {
+  const num = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, (num >> 16) + percent);
+  const g = Math.min(255, ((num >> 8) & 0x00FF) + percent);
+  const b = Math.min(255, (num & 0x0000FF) + percent);
+  return `rgb(${r},${g},${b})`;
 }
 
 function drawUI() {
