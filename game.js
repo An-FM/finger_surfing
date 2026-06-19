@@ -345,6 +345,35 @@ function drawCar(c) {
   const w = c.w;
   const h = c.h;
 
+  // ── Smashed car ──
+  if (c.smashed) {
+    // Flattened car body
+    ctx.fillStyle = '#444';
+    roundRect(x, y + h * 0.4, w, h * 0.5, 4);
+
+    // Cracks
+    ctx.strokeStyle = '#FF0';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + 20, y + h * 0.5);
+    ctx.lineTo(x + 40, y + h * 0.7);
+    ctx.lineTo(x + 30, y + h * 0.8);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + w - 30, y + h * 0.5);
+    ctx.lineTo(x + w - 50, y + h * 0.7);
+    ctx.stroke();
+
+    // Smoke puffs
+    ctx.fillStyle = 'rgba(200,200,200,0.5)';
+    ctx.beginPath();
+    ctx.arc(x + 20, y + 10, 12, 0, Math.PI * 2);
+    ctx.arc(x + w - 20, y + 8, 10, 0, Math.PI * 2);
+    ctx.fill();
+    return;
+  }
+
+  // ── Normal car ──
   // Car body with gradient
   const bodyGrad = ctx.createLinearGradient(x, y, x, y + h);
   bodyGrad.addColorStop(0, lightenColor(c.color, 30));
@@ -530,6 +559,7 @@ function update() {
       color: colors[colorIdx],
       spriteIndex: colorIdx,
       scored: false,
+      smashed: false,
     });
   }
 
@@ -547,10 +577,22 @@ function update() {
 
   // Collision
   for (let c of cars) {
-    if (rectOverlap(player, c)) {
-      state = 'gameover';
-      gameoverTimer = GAMEOVER_DELAY;
-      break;
+    if (!c.smashed && rectOverlap(player, c)) {
+      // Check if player is falling onto the car (stomp)
+      const playerBottom = player.y + player.h;
+      const onTop = playerBottom < c.y + 15 && player.vy >= 0;
+      
+      if (onTop) {
+        // SMASH the car!
+        c.smashed = true;
+        player.vy = -20; // bounce the player up
+        score += 3;      // bonus for smashing
+      } else {
+        // Hit the side/front → game over
+        state = 'gameover';
+        gameoverTimer = GAMEOVER_DELAY;
+        break;
+      }
     }
   }
 }
