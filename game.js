@@ -115,6 +115,9 @@ function draw() {
     drawCar(c);
   }
 
+  // Arm (inside the car, behind the hand)
+  drawArm();
+
   drawPlayer();
   drawWindowFrame();
 
@@ -218,6 +221,30 @@ function drawWindowFrame() {
   shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = shadowGrad;
   ctx.fillRect(32, 32, W - 64, 48);
+}
+
+function drawArm() {
+  // Arm reaches from inside the car (left) to the hand on the window sill
+  const armEndX = player.x;
+  const armY = player.y + 16; // connects to mid-palm
+  const armW = 32;            // thickness
+  const armLen = armEndX + 20; // from off-screen left to the hand
+
+  // Shirt sleeve (upper arm, darker)
+  const sleeveGrad = ctx.createLinearGradient(-20, armY, armEndX, armY);
+  sleeveGrad.addColorStop(0, '#2C3E50');
+  sleeveGrad.addColorStop(0.3, '#34495E');
+  sleeveGrad.addColorStop(0.6, '#2C3E50');
+  ctx.fillStyle = sleeveGrad;
+  roundRect(-20, armY - armW / 2, armLen * 0.5, armW, 6);
+
+  // Exposed arm (lower half, skin tone)
+  const armGrad = ctx.createLinearGradient(armLen * 0.4, armY, armEndX, armY);
+  armGrad.addColorStop(0, '#E8927A');
+  armGrad.addColorStop(0.5, '#FFB6A0');
+  armGrad.addColorStop(1, '#FFD5C2');
+  ctx.fillStyle = armGrad;
+  roundRect(armLen * 0.4, armY - armW / 2 + 2, armLen * 0.6, armW - 4, 6);
 }
 
 function drawPlayer() {
