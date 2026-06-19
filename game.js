@@ -23,8 +23,8 @@ const player = {
 };
 
 // ── Constants ──
-const GRAVITY = 4;
-const JUMP_FORCE = -32;
+const GRAVITY = 3;
+const JUMP_FORCE = -45;
 const SILL_Y = 560;
 const SILL_H = 128;
 
@@ -482,7 +482,7 @@ function update() {
 
   // Player physics
   player.vy += GRAVITY;
-  if (player.vy > 40) player.vy = 40;
+  if (player.vy > 50) player.vy = 50;
   player.y += player.vy;
 
   // Ground / sill collision
