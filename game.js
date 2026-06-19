@@ -115,9 +115,7 @@ function draw() {
     drawCar(c);
   }
 
-  // Arm (inside the car, behind the hand)
-  drawArm();
-
+  // Player (hand with face)
   drawPlayer();
   drawWindowFrame();
 
@@ -223,30 +221,6 @@ function drawWindowFrame() {
   ctx.fillRect(32, 32, W - 64, 48);
 }
 
-function drawArm() {
-  // Arm reaches from inside the car (left) to the hand on the window sill
-  const armEndX = player.x;
-  const armY = player.y + 16; // connects to mid-palm
-  const armW = 32;            // thickness
-  const armLen = armEndX + 20; // from off-screen left to the hand
-
-  // Shirt sleeve (upper arm, darker)
-  const sleeveGrad = ctx.createLinearGradient(-20, armY, armEndX, armY);
-  sleeveGrad.addColorStop(0, '#2C3E50');
-  sleeveGrad.addColorStop(0.3, '#34495E');
-  sleeveGrad.addColorStop(0.6, '#2C3E50');
-  ctx.fillStyle = sleeveGrad;
-  roundRect(-20, armY - armW / 2, armLen * 0.5, armW, 6);
-
-  // Exposed arm (lower half, skin tone)
-  const armGrad = ctx.createLinearGradient(armLen * 0.4, armY, armEndX, armY);
-  armGrad.addColorStop(0, '#E8927A');
-  armGrad.addColorStop(0.5, '#FFB6A0');
-  armGrad.addColorStop(1, '#FFD5C2');
-  ctx.fillStyle = armGrad;
-  roundRect(armLen * 0.4, armY - armW / 2 + 2, armLen * 0.6, armW - 4, 6);
-}
-
 function drawPlayer() {
   const frame = player.animFrame;
   const state = player.animState;
@@ -269,68 +243,150 @@ function drawPlayer() {
   const w = player.w;
   const h = player.h;
 
-  // Skin tone gradient
+  // Skin gradient
   const skinGrad = ctx.createLinearGradient(x, y, x, y + h);
   skinGrad.addColorStop(0, '#FFD5C2');
-  skinGrad.addColorStop(0.5, '#FFB6A0');
+  skinGrad.addColorStop(0.3, '#FFBFA8');
+  skinGrad.addColorStop(0.7, '#F5A88A');
   skinGrad.addColorStop(1, '#E8927A');
+
+  // Shadow gradient (right side)
+  const shadowGrad = ctx.createLinearGradient(x + w * 0.7, y, x + w, y);
+  shadowGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  shadowGrad.addColorStop(1, 'rgba(0,0,0,0.12)');
+
+  // ── Palm ──
+  ctx.fillStyle = skinGrad;
+  roundRect(x, y, w, 52, 10);
+
+  // Palm shadow
+  ctx.fillStyle = shadowGrad;
+  roundRect(x, y, w, 52, 10);
+
+  // Thumb (side)
+  const thumbOut = frame === 2 ? 4 : 0; // slight movement in some frames
+  ctx.fillStyle = '#F5A88A';
+  roundRect(x - 10 + thumbOut, y + 16, 14, 24, 6);
+  ctx.fillStyle = '#E8927A';
+  roundRect(x - 10 + thumbOut, y + 16, 14, 4, 2); // thumb shadow
+
+  // Knuckle lines on palm
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x + 8, y + 34);
+  ctx.lineTo(x + w - 8, y + 34);
+  ctx.stroke();
+
+  // ── Face on the palm ──
+  const faceY = y + 12;
+
+  // Eyes
+  const eyeSpacing = 16;
+  const eyeY = faceY + 8;
+
+  // Left eye white
+  ctx.fillStyle = '#FFF';
+  ctx.beginPath();
+  ctx.ellipse(x + w/2 - eyeSpacing, eyeY, 7, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Right eye white
+  ctx.beginPath();
+  ctx.ellipse(x + w/2 + eyeSpacing, eyeY, 7, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Left pupil
+  ctx.fillStyle = '#2C1810';
+  ctx.beginPath();
+  ctx.arc(x + w/2 - eyeSpacing + 1, eyeY + 1, 4, 0, Math.PI * 2);
+  ctx.fill();
+  // Right pupil
+  ctx.beginPath();
+  ctx.arc(x + w/2 + eyeSpacing + 1, eyeY + 1, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Eye shine
+  ctx.fillStyle = '#FFF';
+  ctx.beginPath();
+  ctx.arc(x + w/2 - eyeSpacing, eyeY - 2, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + w/2 + eyeSpacing, eyeY - 2, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Rosy cheeks
+  ctx.fillStyle = 'rgba(255, 150, 150, 0.35)';
+  ctx.beginPath();
+  ctx.ellipse(x + w/2 - eyeSpacing + 2, eyeY + 10, 7, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(x + w/2 + eyeSpacing - 2, eyeY + 10, 7, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Smile
+  ctx.strokeStyle = '#C97060';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(x + w/2, eyeY + 12, 6, 0.1, Math.PI - 0.1);
+  ctx.stroke();
+
+  // ── Fingers (index and middle, acting as legs) ──
+  const leftFingerX = x + 8;
+  const rightFingerX = x + w - 28;
 
   ctx.fillStyle = skinGrad;
 
   if (state === 'idle') {
-    // Palm
-    roundRect(x, y, w, 56, 8);
-    const sway = frame === 0 ? 0 : 6;
-    roundRect(x + 6 + sway, y + 48, 20, 44, 6);
-    roundRect(x + 38 - sway, y + 48, 20, 44, 6);
-    // Fingernails
-    ctx.fillStyle = '#FFEDE0';
-    roundRect(x + 9 + sway, y + 82, 14, 6, 3);
-    roundRect(x + 41 - sway, y + 82, 14, 6, 3);
+    // Both fingers down, slight sway
+    const sway = frame === 0 ? 0 : 3;
+    roundRect(leftFingerX + sway, y + 44, 20, 48, 6);
+    roundRect(rightFingerX - sway, y + 44, 20, 48, 6);
+    // Finger knuckles
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+    roundRect(leftFingerX + sway, y + 64, 20, 3, 1);
+    roundRect(rightFingerX - sway, y + 64, 20, 3, 1);
   } else if (state === 'running') {
-    // Palm
-    roundRect(x, y, w, 48, 8);
     if (frame === 0) {
-      roundRect(x + 6, y + 40, 22, 56, 6);
-      roundRect(x + 36, y + 44, 22, 48, 6);
+      roundRect(leftFingerX, y + 40, 22, 56, 6);
+      roundRect(rightFingerX, y + 44, 22, 48, 6);
     } else if (frame === 1) {
-      roundRect(x + 6, y + 44, 22, 44, 6);
-      roundRect(x + 36, y + 40, 22, 40, 6);
+      roundRect(leftFingerX, y + 44, 22, 44, 6);
+      roundRect(rightFingerX, y + 40, 22, 40, 6);
     } else {
-      roundRect(x + 6, y + 40, 22, 40, 6);
-      roundRect(x + 36, y + 44, 22, 44, 6);
-    }
-    // Fingernails
-    ctx.fillStyle = '#FFEDE0';
-    if (frame === 0) {
-      roundRect(x + 11, y + 88, 14, 6, 3);
-      roundRect(x + 41, y + 84, 14, 6, 3);
-    } else if (frame === 1) {
-      roundRect(x + 11, y + 80, 14, 6, 3);
-      roundRect(x + 41, y + 72, 14, 6, 3);
-    } else {
-      roundRect(x + 11, y + 72, 14, 6, 3);
-      roundRect(x + 41, y + 80, 14, 6, 3);
+      roundRect(leftFingerX, y + 40, 22, 40, 6);
+      roundRect(rightFingerX, y + 44, 22, 44, 6);
     }
   } else if (state === 'jumping') {
-    // Palm
-    roundRect(x, y, w, 48, 8);
+    // Fingers tucked up
     if (frame === 0) {
-      roundRect(x + 6, y + 32, 22, 36, 6);
-      roundRect(x + 36, y + 32, 22, 36, 6);
+      roundRect(leftFingerX, y + 32, 22, 36, 6);
+      roundRect(rightFingerX, y + 32, 22, 36, 6);
     } else {
-      roundRect(x + 2, y + 32, 22, 36, 6);
-      roundRect(x + 40, y + 32, 22, 36, 6);
+      roundRect(leftFingerX - 4, y + 32, 22, 36, 6);
+      roundRect(rightFingerX + 4, y + 32, 22, 36, 6);
     }
-    // Fingernails
-    ctx.fillStyle = '#FFEDE0';
+  }
+
+  // ── Fingernails ──
+  ctx.fillStyle = '#FFEDE0';
+  if (state === 'idle') {
+    const sway = frame === 0 ? 0 : 3;
+    roundRect(leftFingerX + sway + 3, y + 82, 14, 6, 3);
+    roundRect(rightFingerX - sway + 3, y + 82, 14, 6, 3);
+  } else if (state === 'running') {
     if (frame === 0) {
-      roundRect(x + 11, y + 60, 14, 6, 3);
-      roundRect(x + 41, y + 60, 14, 6, 3);
+      roundRect(leftFingerX + 4, y + 88, 14, 6, 3);
+      roundRect(rightFingerX + 4, y + 84, 14, 6, 3);
+    } else if (frame === 1) {
+      roundRect(leftFingerX + 4, y + 80, 14, 6, 3);
+      roundRect(rightFingerX + 4, y + 72, 14, 6, 3);
     } else {
-      roundRect(x + 7, y + 60, 14, 6, 3);
-      roundRect(x + 45, y + 60, 14, 6, 3);
+      roundRect(leftFingerX + 4, y + 72, 14, 6, 3);
+      roundRect(rightFingerX + 4, y + 80, 14, 6, 3);
     }
+  } else if (state === 'jumping') {
+    roundRect(leftFingerX + 4, y + 60, 14, 6, 3);
+    roundRect(rightFingerX + 4, y + 60, 14, 6, 3);
   }
 }
 
